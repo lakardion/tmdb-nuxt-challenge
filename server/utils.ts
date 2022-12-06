@@ -3,6 +3,7 @@ export const getServerUrl = (
   queries?: {
     sort_by?: string;
     page?: number;
+    query?: string;
   }
 ) => {
   const config = useRuntimeConfig();

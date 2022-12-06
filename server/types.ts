@@ -9,8 +9,9 @@ export type MovieDiscover = {
   id: number;
   poster_path: string | null;
   adult: boolean;
-  overiew: string;
+  overview: string;
   release_date: string;
+  gender_ids: number[];
   original_title: string;
   original_language: string;
   title: string;
