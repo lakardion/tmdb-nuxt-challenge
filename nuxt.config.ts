@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    tbdbSecret: process.env.NUXT_TMDB_API_KEY,
+    tmdbBaseUrl: process.env.NUXT_TMDB_URL,
+    tmdbSecret: process.env.NUXT_TMDB_API_KEY,
   },
 });
