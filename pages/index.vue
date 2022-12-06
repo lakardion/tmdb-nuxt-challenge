@@ -68,6 +68,7 @@ const previousSearchPage = () => {
 <template>
   <main class="pt-2 px-3">
     <div>Current pages are: {{ currentPage }} -- {{ currentSearchPage }}</div>
+    <StarRatingInput />
     <label class="flex gap-2 py-3">
       <p>Search</p>
       <input
