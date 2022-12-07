@@ -1,4 +1,5 @@
 <script setup>
+const config = useImageConfiguration();
 const currentPage = useState("currentPage", () => 1);
 const reactivePageParam = computed(() => ({
   page: currentPage.value,
@@ -111,6 +112,7 @@ watch([selectedStars, starFilterPage], starRefresh);
 
 <template>
   <main class="pt-2 px-3">
+    <div>{{ config?.images?.base_url }}</div>
     <StarRatingInput stars="5" initial="0" :state-key="starsKey" />
     <label class="flex gap-2 py-3">
       <p>Search</p>
@@ -123,17 +125,23 @@ watch([selectedStars, starFilterPage], starRefresh);
     </label>
     <ul v-if="Boolean(searchResult)">
       <li v-for="movie in searchResult.results" key="movie.id">
-        {{ movie.title }}
+        <NuxtLink :to="'/movies/' + movie.id">
+          {{ movie.title }}
+        </NuxtLink>
       </li>
     </ul>
     <ul v-else-if="Boolean(starFiltered)">
       <li v-for="movie in starFiltered.results" key="movie.id">
-        {{ movie.title }}
+        <NuxtLink :to="'/movies/' + movie.id">
+          {{ movie.title }}
+        </NuxtLink>
       </li>
     </ul>
     <ul v-else>
       <li v-for="movie in paginatedDiscover.results" key="movie.id">
-        {{ movie.title }}
+        <NuxtLink :to="'/movies/' + movie.id">
+          {{ movie.title }}
+        </NuxtLink>
       </li>
     </ul>
     <section
