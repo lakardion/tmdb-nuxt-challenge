@@ -158,7 +158,7 @@ watch([selectedStars, starFilterPage], starRefresh);
         Next
       </button>
     </section>
-    <section v-else-if="Boolean(starFiltered)">
+    <section v-else-if="Boolean(starFiltered)" class="flex gap-3 pt-3">
       <button
         type="button"
         :disabled="!hasPreviousStarFilterPage"
@@ -176,7 +176,7 @@ watch([selectedStars, starFilterPage], starRefresh);
         Next
       </button>
     </section>
-    <section v-else>
+    <section v-else class="flex gap-3 pt-3">
       <button
         type="button"
         :disabled="!hasPreviousPage"
