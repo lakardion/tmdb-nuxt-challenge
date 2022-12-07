@@ -63,12 +63,14 @@ const previousSearchPage = () => {
   }
   currentSearchPage.value--;
 };
+const starsKey = "discover-filter";
+const selectedStars = useState(`stars-${starsKey}`);
 </script>
 
 <template>
   <main class="pt-2 px-3">
-    <div>Current pages are: {{ currentPage }} -- {{ currentSearchPage }}</div>
-    <StarRatingInput />
+    <div>Selected stars from parent: {{ selectedStars }}</div>
+    <StarRatingInput stars="5" initial="0" :state-key="starsKey" />
     <label class="flex gap-2 py-3">
       <p>Search</p>
       <input

@@ -1,14 +1,18 @@
 <script setup>
 import { AnFilledStar, AnOutlinedStar } from "@kalimahapps/vue-icons/an";
-const starRange = Array.from({ length: 5 });
-const selectedStars = ref(0);
-const handler = () => () => {
-  console.log("hello 2");
-};
+
+const props = defineProps(["stars", "initial", "stateKey"]);
+const starRange = Array.from({ length: props.stars });
+const selectedStars = useState(`stars-${props.stateKey}`, () => {
+  return props.initial ?? 0;
+});
 // creating handlers in VUE are quite the counter intuitive thing to do, you actually have to call it rather than just referencing it
 function createStarHandler(index) {
   return () => {
-    console.log("hello??");
+    if (selectedStars.value === index + 1) {
+      selectedStars.value = 0;
+      return;
+    }
     selectedStars.value = index + 1;
   };
 }
