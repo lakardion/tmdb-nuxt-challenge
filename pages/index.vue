@@ -112,8 +112,12 @@ watch([selectedStars, starFilterPage], starRefresh);
 
 <template>
   <main class="pt-2 px-3">
-    <div>{{ config?.images?.base_url }}</div>
-    <StarRatingInput stars="5" initial="0" :state-key="starsKey" />
+    <StarRatingInput
+      :stars="5"
+      :initial="0"
+      :state-key="starsKey"
+      :disabled="Boolean(searchValue)"
+    />
     <label class="flex gap-2 py-3">
       <p>Search</p>
       <input

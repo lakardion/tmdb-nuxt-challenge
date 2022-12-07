@@ -1,7 +1,7 @@
 <script setup>
 import { AnFilledStar, AnOutlinedStar } from "@kalimahapps/vue-icons/an";
 
-const props = defineProps(["stars", "initial", "stateKey"]);
+const props = defineProps(["stars", "initial", "stateKey", "disabled"]);
 const starRange = Array.from({ length: props.stars });
 const selectedStars = useState(`stars-${props.stateKey}`, () => {
   return props.initial ?? 0;
@@ -16,15 +16,19 @@ function createStarHandler(index) {
     selectedStars.value = index + 1;
   };
 }
+const disabled = computed(() => props.disabled);
 </script>
 
 <template>
   <section aria-label="star input">
+    <div>{{ disabled }}</div>
     <ul class="flex gap-2">
       <li v-for="(item, index) in starRange" :key="index">
         <button
           v-if="index + 1 <= selectedStars"
           @click="createStarHandler(index)()"
+          :disabled="disabled"
+          class="disabled:cursor-not-allowed disabled:opacity-75"
         >
           <AnFilledStar />
         </button>
