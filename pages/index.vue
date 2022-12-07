@@ -2,6 +2,7 @@
 const currentPage = useState("currentPage", () => 1);
 const reactivePageParam = computed(() => ({
   page: currentPage.value,
+  sortBy: "popularity.desc",
 }));
 const { data: paginatedDiscover, refresh } = useAsyncData(
   `movie-discover-page-${currentPage.value}`,
@@ -13,9 +14,10 @@ const { data: paginatedDiscover, refresh } = useAsyncData(
 watch(reactivePageParam, refresh);
 
 const hasNextPage = computed(
-  () => paginatedDiscover.value.page + 1 <= paginatedDiscover.value.total_pages
+  () =>
+    paginatedDiscover.value?.page + 1 <= paginatedDiscover.value?.total_pages
 );
-const hasPreviousPage = computed(() => paginatedDiscover.value.page - 1 >= 1);
+const hasPreviousPage = computed(() => paginatedDiscover.value?.page - 1 >= 1);
 const nextPage = () => {
   if (!hasNextPage.value) {
     return;
@@ -48,9 +50,9 @@ watch([searchValue, currentSearchPage], async ([newSearch, newPage]) => {
 const searchResult = ref(null);
 
 const hasSearchNextPage = computed(
-  () => searchResult.value.page + 1 <= searchResult.value.total_pages
+  () => searchResult.value?.page + 1 <= searchResult.value?.total_pages
 );
-const hasSearchPreviousPage = computed(() => searchResult.value.page - 1 >= 1);
+const hasSearchPreviousPage = computed(() => searchResult.value?.page - 1 >= 1);
 const nextSearchPage = () => {
   if (!hasSearchNextPage.value) {
     return;
@@ -63,55 +65,82 @@ const previousSearchPage = () => {
   }
   currentSearchPage.value--;
 };
+// adding more and more filters this is turning to be quite chaotic. Things thar are not search ( and use the same same endpoint) should probably be somewhat handled together?
 const starsKey = "discover-filter";
 const selectedStars = useState(`stars-${starsKey}`);
+const starVoteMap = [2, 4, 6, 8, 10];
+const { data: starFiltered, refresh: starRefresh } = useAsyncData(
+  `star-filtered-${selectedStars}`,
+  async () => {
+    if (!selectedStars.value) return null;
+    const voteMax = selectedStars.value
+      ? starVoteMap[selectedStars.value - 1]
+      : undefined;
+    const result = await $fetch("/api/movies/discover", {
+      params: {
+        sortBy: "popularity.desc",
+        page: starFilterPage.value,
+        voteMax,
+        voteMin: voteMax ? voteMax - 2 : undefined,
+      },
+    });
+    return result;
+  }
+);
+const starFilterPage = ref(1);
+const hasNextStarFilterPage = computed(
+  () => starFiltered.value?.page + 1 <= starFiltered.value?.total_pages
+);
+const hasPreviousStarFilterPage = computed(
+  () => starFiltered.value?.page - 1 >= 1
+);
+const nextStarFilterPage = () => {
+  if (!hasNextStarFilterPage.value) {
+    return;
+  }
+  starFilterPage.value++;
+};
+const previousStarFilterPage = () => {
+  if (!hasPreviousStarFilterPage.value) {
+    return;
+  }
+  starFilterPage.value--;
+};
+watch([selectedStars, starFilterPage], starRefresh);
 </script>
 
 <template>
   <main class="pt-2 px-3">
-    <div>Selected stars from parent: {{ selectedStars }}</div>
     <StarRatingInput stars="5" initial="0" :state-key="starsKey" />
     <label class="flex gap-2 py-3">
       <p>Search</p>
       <input
         v-model="searchValue"
         type="text"
-        class="border border-gray-600/50"
+        class="border border-gray-600/50 disabled:bg-gray-200/50 disabled:cursor-not-allowed"
+        :disabled="Boolean(selectedStars)"
       />
     </label>
-    <ul v-if="!Boolean(searchResult)">
-      <li v-for="movie in paginatedDiscover.results" key="movie.id">
+    <ul v-if="Boolean(searchResult)">
+      <li v-for="movie in searchResult.results" key="movie.id">
+        {{ movie.title }}
+      </li>
+    </ul>
+    <ul v-else-if="Boolean(starFiltered)">
+      <li v-for="movie in starFiltered.results" key="movie.id">
         {{ movie.title }}
       </li>
     </ul>
     <ul v-else>
-      <li v-for="movie in searchResult.results" key="movie.id">
+      <li v-for="movie in paginatedDiscover.results" key="movie.id">
         {{ movie.title }}
       </li>
     </ul>
     <section
       aria-label="action buttons"
       class="flex gap-3 pt-3"
-      v-if="!Boolean(searchResult)"
+      v-if="Boolean(searchResult)"
     >
-      <button
-        type="button"
-        :disabled="!hasPreviousPage"
-        @click="previousPage"
-        class="p-2 rounded-lg bg-amber-200 text-gray-500 font-bold hover:bg-amber-400 hover:text-gray-200"
-      >
-        Previous
-      </button>
-      <button
-        type="button"
-        :disabled="!hasNextPage"
-        @click="nextPage"
-        class="p-2 rounded-lg bg-amber-200 text-gray-500 font-bold hover:bg-amber-400 hover:text-gray-200"
-      >
-        Next
-      </button>
-    </section>
-    <section v-else>
       <button
         type="button"
         :disabled="!hasSearchPreviousPage"
@@ -124,6 +153,42 @@ const selectedStars = useState(`stars-${starsKey}`);
         type="button"
         :disabled="!hasSearchNextPage"
         @click="nextSearchPage"
+        class="p-2 rounded-lg bg-amber-200 text-gray-500 font-bold hover:bg-amber-400 hover:text-gray-200"
+      >
+        Next
+      </button>
+    </section>
+    <section v-else-if="Boolean(starFiltered)">
+      <button
+        type="button"
+        :disabled="!hasPreviousStarFilterPage"
+        @click="previousStarFilterPage"
+        class="p-2 rounded-lg bg-amber-200 text-gray-500 font-bold hover:bg-amber-400 hover:text-gray-200"
+      >
+        Previous
+      </button>
+      <button
+        type="button"
+        :disabled="!hasNextStarFilterPage"
+        @click="nextStarFilterPage"
+        class="p-2 rounded-lg bg-amber-200 text-gray-500 font-bold hover:bg-amber-400 hover:text-gray-200"
+      >
+        Next
+      </button>
+    </section>
+    <section v-else>
+      <button
+        type="button"
+        :disabled="!hasPreviousPage"
+        @click="previousPage"
+        class="p-2 rounded-lg bg-amber-200 text-gray-500 font-bold hover:bg-amber-400 hover:text-gray-200"
+      >
+        Previous
+      </button>
+      <button
+        type="button"
+        :disabled="!hasNextPage"
+        @click="nextPage"
         class="p-2 rounded-lg bg-amber-200 text-gray-500 font-bold hover:bg-amber-400 hover:text-gray-200"
       >
         Next
